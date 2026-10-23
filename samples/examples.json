@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Webhook retries: Kafka or SQS?",
+    "thread": "Priya: Webhook deliveries are failing silently when the partner API is down. We need retries with backoff.\nTom: What about Kafka? We could replay the topic when the partner comes back.\nAisha: Kafka feels heavy for this. Alternatively we could use SQS with a dead-letter queue, we already run it for email jobs.\nTom: Fair, SQS is cheaper and the team already knows it. Kafka would mean another cluster to babysit.\nPriya: Agreed. Let's go with SQS plus a DLQ for webhook retries, max 5 attempts with exponential backoff.\nAisha: I'll write the Terraform for the queue and DLQ this sprint.\nTom: I'll add an alert on DLQ depth > 0.\nPriya: Do we need to tell partners about the new retry window?"
+  },
+  {
+    "name": "Release cadence",
+    "thread": "[09:12] Sam: Releases on Friday afternoons keep biting us. Two incidents this month.\n[09:14] Leah: Option: freeze merges after Thursday 2pm and release Thursday morning instead.\n[09:15] Dev: How about continuous deploys behind feature flags? Then the day doesn't matter.\n[09:17] Sam: Flags are the long-term answer but we don't have the tooling yet.\n[09:20] Leah: Thursday morning is simpler and means people are around to fix things on Friday.\n[09:22] Sam: Decided: we release Thursday mornings starting next week, no Friday deploys.\n[09:23] Leah: I'll update the release checklist and the team calendar.\n[09:25] Dev: can you @Sam post this in #engineering?\n[09:30] Dev: Still need to work out what happens with hotfixes on Fridays, TBD."
+  },
+  {
+    "name": "Still undecided: monorepo?",
+    "thread": "Jo: Should we move the web and mobile apps into a monorepo?\nKit: Pros: shared types and one CI. Cons: CI gets slower and ownership gets blurry.\nJo: What about just publishing a shared types package instead?\nKit: That could work, but versioning it is a pain.\nJo: Not sure yet. Let's revisit after the Q4 roadmap is final."
+  }
+]

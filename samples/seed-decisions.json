@@ -1,0 +1,53 @@
+[
+  {
+    "id": "seed-001",
+    "title": "Use SQS for async jobs instead of Kafka",
+    "status": "decided",
+    "decision": "All new async jobs (email, exports, retries) go through SQS with a dead-letter queue. We will not run our own Kafka cluster.",
+    "decidedBy": "Priya",
+    "date": "2026-06-11",
+    "participants": ["Priya", "Tom", "Marcus"],
+    "context": "Email and export jobs needed a queue. Kafka and SQS were both proposed.",
+    "options": ["Kafka (self-managed)", "SQS with a dead-letter queue", "Postgres-backed job table"],
+    "rationale": ["SQS is managed and cheap at our volume", "Nobody on the team wants to operate Kafka"],
+    "actions": [{ "owner": "Marcus", "task": "Write the queue module and DLQ alarms" }],
+    "openQuestions": [],
+    "tags": ["sqs", "kafka", "queue", "async"],
+    "source": "demo",
+    "createdAt": "2026-06-11T10:00:00.000Z"
+  },
+  {
+    "id": "seed-002",
+    "title": "Adopt pnpm for all JavaScript repos",
+    "status": "decided",
+    "decision": "We switch every JS repo from npm to pnpm by the end of Q3.",
+    "decidedBy": "Leah",
+    "date": "2026-07-02",
+    "participants": ["Leah", "Dev"],
+    "context": "Install times in CI were over four minutes and disk use on runners kept growing.",
+    "options": ["Stay on npm", "Yarn Berry", "pnpm"],
+    "rationale": ["pnpm halved CI install time in a trial", "Strict node_modules catches phantom dependencies"],
+    "actions": [{ "owner": "Dev", "task": "Migrate the web repo first and write a migration note" }],
+    "openQuestions": ["Does the mobile toolchain support pnpm workspaces?"],
+    "tags": ["pnpm", "tooling", "javascript", "ci"],
+    "source": "demo",
+    "createdAt": "2026-07-02T15:30:00.000Z"
+  },
+  {
+    "id": "seed-003",
+    "title": "Keep on-call to one week rotations",
+    "status": "decided",
+    "decision": "On-call stays a one-week rotation with a Tuesday handover.",
+    "decidedBy": "Sam",
+    "date": "2026-08-20",
+    "participants": ["Sam", "Aisha", "Jo"],
+    "context": "Some people asked for shorter shifts after a noisy week.",
+    "options": ["Daily rotation", "Two-week rotation", "One-week rotation"],
+    "rationale": ["Handover overhead makes short rotations worse", "Tuesday avoids handing over a weekend's mess on Monday"],
+    "actions": [],
+    "openQuestions": [],
+    "tags": ["on-call", "rotation", "process"],
+    "source": "demo",
+    "createdAt": "2026-08-20T09:00:00.000Z"
+  }
+]

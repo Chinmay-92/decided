@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Decided</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">✓</span>
+      <div>
+        <h1>Decided</h1>
+        <p class="tag">Turn a messy thread into a decision record — and catch the debates you've already had.</p>
+      </div>
+    </div>
+    <span id="mode" class="mode" title="Extraction mode">…</span>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tab-capture" aria-selected="true" data-view="capture">Capture</button>
+    <button role="tab" id="tab-log" aria-selected="false" data-view="log">Decision log <span id="log-count" class="count"></span></button>
+  </nav>
+
+  <main>
+    <!-- CAPTURE VIEW -->
+    <section id="view-capture" class="view">
+      <div class="pane input-pane">
+        <div class="pane-head">
+          <h2><span class="step">1</span> Paste the thread</h2>
+          <label class="examples">Try an example
+            <select id="example-select"><option value="">Choose…</option></select>
+          </label>
+        </div>
+        <textarea id="thread" spellcheck="false" placeholder="Priya: Webhooks are failing silently…&#10;Tom: What about Kafka?&#10;Aisha: Let's go with SQS plus a DLQ.&#10;&#10;One message per line, as “Name: message”. Slack, Teams or email copy-paste all work."></textarea>
+        <div class="row">
+          <button id="extract" class="primary">Extract decision</button>
+          <span class="hint">Nothing leaves your machine in demo mode.</span>
+        </div>
+        <p id="input-error" class="error" role="alert" hidden></p>
+      </div>
+
+      <div class="pane output-pane">
+        <div class="pane-head"><h2><span class="step">2</span> Review the record</h2></div>
+
+        <div id="empty" class="empty">
+          <p class="big">No record yet.</p>
+          <p>Paste a conversation on the left (or pick an example) and press <strong>Extract decision</strong>. You'll get a structured record you can edit, save to your log, and export as Markdown.</p>
+        </div>
+
+        <div id="warning" class="warning" role="status" hidden></div>
+        <div id="related" class="related" hidden></div>
+
+        <form id="record" class="record" hidden>
+          <div class="status-row">
+            <select id="f-status" aria-label="Status">
+              <option value="decided">Decided</option>
+              <option value="open">Open — no decision yet</option>
+            </select>
+            <input id="f-date" type="date" aria-label="Date" />
+            <span id="f-source" class="source"></span>
+          </div>
+          <label>Title<input id="f-title" maxlength="120" required /></label>
+          <label>Decision<textarea id="f-decision" rows="2"></textarea></label>
+          <div class="two">
+            <label>Decided by<input id="f-decidedBy" /></label>
+            <label>Participants <small>(comma-separated)</small><input id="f-participants" /></label>
+          </div>
+          <label>Context<textarea id="f-context" rows="2"></textarea></label>
+          <label>Options considered <small>(one per line)</small><textarea id="f-options" rows="3"></textarea></label>
+          <label>Rationale <small>(one per line)</small><textarea id="f-rationale" rows="2"></textarea></label>
+          <label>Actions <small>(one per line, “Owner: task”)</small><textarea id="f-actions" rows="3"></textarea></label>
+          <label>Open questions <small>(one per line)</small><textarea id="f-openQuestions" rows="2"></textarea></label>
+          <label>Tags <small>(comma-separated)</small><input id="f-tags" /></label>
+          <div class="row actions-row">
+            <button type="submit" class="primary" id="save">Save to log</button>
+            <button type="button" id="copy">Copy Markdown</button>
+            <button type="button" id="download">Download .md</button>
+            <span id="saved-msg" class="ok" role="status"></span>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- LOG VIEW -->
+    <section id="view-log" class="view" hidden>
+      <div class="log-head">
+        <input id="search" type="search" placeholder="Search decisions, people, tags…" aria-label="Search decisions" />
+      </div>
+      <ul id="log-list" class="log-list"></ul>
+      <p id="log-empty" class="empty" hidden>No decisions match. Capture one from a thread first.</p>
+    </section>
+  </main>
+
+  <dialog id="detail">
+    <article>
+      <pre id="detail-md"></pre>
+      <div class="row">
+        <button id="detail-edit" class="primary">Edit</button>
+        <button id="detail-copy">Copy Markdown</button>
+        <button id="detail-delete" class="danger">Delete</button>
+        <button id="detail-close">Close</button>
+      </div>
+    </article>
+  </dialog>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

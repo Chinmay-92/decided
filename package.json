@@ -1,0 +1,16 @@
+{
+  "name": "decided",
+  "version": "0.1.0",
+  "description": "Paste a messy team thread, get a clean decision record — and find out if you already decided this.",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test",
+    "smoke": "node scripts/smoke.mjs"
+  }
+}
