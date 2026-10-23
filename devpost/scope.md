@@ -1,10 +1,7 @@
 ---
 doc: scope
-status: draft
+status: approved
 ---
-
-<!-- Drafted by the coding agent following the Devpost Learn Skill Pack's 2-scope template.
-     Re-run `2-scope` in your agent to do the interview and set status: approved. -->
 
 # Decided
 
@@ -35,7 +32,7 @@ They come back because the log gets more useful the more it holds — every new 
 
 ## Why This Matters to the Learner
 
-"We waste whole meetings re-arguing things we settled months ago. I wanted a two-minute habit that makes writing decisions down cheaper than not doing it."
+Not stated by the learner. They confirmed the draft's user, kernel and "done" demo as they stand (2026-10-23). The learning goal is the Claude API, and the extraction step (`src/claude.js`) is where that gets practiced.
 
 ## What "Working" Looks Like
 

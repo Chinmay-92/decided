@@ -1,10 +1,7 @@
 ---
 doc: prd
-status: draft
+status: approved
 ---
-
-<!-- Drafted by the coding agent following the Devpost Learn Skill Pack's 3-prd template.
-     Re-run `3-prd` in your agent to do the interview and set status: approved. -->
 
 # Decided — Product Requirements
 
@@ -68,6 +65,7 @@ Calm "engineering notebook": cream background, white panels, navy accent, monosp
 - Copy-paste input instead of a Slack integration — proves the kernel with zero setup. (Assumption: users are fine copying a thread.)
 - Every extracted field is editable before saving — the AI drafts, the human decides.
 - Works fully offline without an API key so judges and new users can try it instantly.
+- Learner reviewed the drafted journey, behaviors, criteria and boundaries and confirmed them as written (2026-10-23).
 
 ## What We're Building
 

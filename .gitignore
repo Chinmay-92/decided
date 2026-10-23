@@ -5,3 +5,6 @@ data/
 !.env.example
 .DS_Store
 *.tmp
+
+# Personal learning context (Devpost Learn)
+/devpost/learner-profile.md

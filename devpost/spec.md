@@ -1,10 +1,7 @@
 ---
 doc: spec
-status: draft
+status: approved
 ---
-
-<!-- Drafted by the coding agent following the Devpost Learn Skill Pack's 4-spec template.
-     Re-run `4-spec` in your agent to review the plan and set status: approved. -->
 
 # Decided — Technical Spec
 
@@ -45,7 +42,7 @@ CSS custom properties for colours (light + dark via `prefers-color-scheme`), sys
 Implements `prd.md > Extraction`. Parses messages, finds the last substantive decision cue, options/rationale/actions/questions by regex cues, top repeated words as tags. `normaliseRecord()` coerces any input (heuristic, Claude, browser) into a safe shape.
 
 ### Claude client — `src/claude.js`
-Implements `prd.md > Extraction` (Claude mode). One `fetch` to `/v1/messages` with a strict JSON-only system prompt; parses the first `{…}` block; 45s timeout. Any error → server falls back to the extractor with a warning.
+Implements `prd.md > Extraction` (Claude mode). One `fetch` to `/v1/messages` (no SDK — zero-dependency rule) using **structured outputs**: `output_config: { format: { type: 'json_schema', schema: DECISION_SCHEMA } }`, so the response text is guaranteed to match the record schema (every object has `additionalProperties: false` and lists `required`). The response is `JSON.parse`d directly; there's no brace-scraping. Treat `stop_reason` of `max_tokens` or `refusal` as a failure. `max_tokens: 16000`, because Sonnet 5.5's adaptive thinking draws from the same limit. 45s timeout. Any error → the server falls back to the extractor with a warning.
 
 ### Similarity — `src/similar.js`
 Implements `prd.md > Related-decision check`. Cosine similarity of word counts (title and tags weighted ×2). ≥ 0.18 related, ≥ 0.35 strong. Returns shared terms for explainability.
@@ -93,11 +90,11 @@ devpost/               planning docs (scope, prd, spec, checklist)
 
 ## External Services and Dependencies
 
-- Anthropic Messages API — `POST https://api.anthropic.com/v1/messages`, headers `x-api-key`, `anthropic-version: 2023-06-01`; `max_tokens: 1500`. Key from `ANTHROPIC_API_KEY` env var only. A capture costs roughly one short Sonnet request. Optional.
+- Anthropic Messages API — `POST https://api.anthropic.com/v1/messages`, headers `x-api-key`, `anthropic-version: 2023-06-01`; `max_tokens: 16000`; `output_config.format` json_schema (GA, no beta header). Forced `tool_choice` returns 400 on `claude-sonnet-5-5`, so it isn't used for JSON. Docs: https://platform.claude.com/docs/en/build-with-claude/structured-outputs Key from `ANTHROPIC_API_KEY` env var only. A capture costs roughly one short Sonnet request. Optional.
 
 ## Important Failure Modes
 
-1. **Claude unavailable / bad JSON** → fall back to demo extractor, show amber notice.
+1. **Claude unavailable, refusal, or truncated (`stop_reason` `refusal` / `max_tokens`)** → fall back to demo extractor, show amber notice.
 2. **Thread not in `Name: message` format** → lines treated as one "Unknown" speaker; user edits fields.
 3. **Corrupt data file** → server error on load; fix or delete `data/decisions.json` (documented in README).
 
@@ -111,3 +108,4 @@ devpost/               planning docs (scope, prd, spec, checklist)
 
 - **Zero dependencies** — chosen so reviewers and teammates can run it instantly. Tradeoff accepted: hand-written routing.
 - **Uncertainty**: would word overlap catch real re-debates? Investigated with the seeded examples (strong 0.5+ for the SQS case, 0 for unrelated) and covered by tests; real-world tuning is open.
+- **Learning focus (Claude API): how do we reliably get JSON back from Claude?** The original draft asked for JSON in the prompt and scraped the first `{…}` block, so a parse failure would quietly drop into demo mode. Resolved in `4-spec`, with the learner's agreement, by switching to structured outputs (`output_config.format` json_schema) plus explicit `stop_reason` checks and a higher `max_tokens`. To verify in build: a unit test sends the schema in the request body and parses a mocked structured response; and, if a key is available, one live capture of the Webhook retries example comes back with `source: 'claude'`.
