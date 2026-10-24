@@ -19,7 +19,7 @@ Build mode: fast
   Learner check: Run `npm start`, open http://localhost:3000, pick "Webhook retries: Kafka or SQS?", press Extract decision, and check that the red banner points at the SQS decision; save it, then search "sqs" in the Decision log.
   Commit: `Decided: decision records from team threads, with an already-decided check` (ff9ab99)
 
-- [ ] **2. Claude extraction returns schema-guaranteed JSON**
+- [x] **2. Claude extraction returns schema-guaranteed JSON**
   Becomes usable: In Claude mode the record comes back guaranteed to match the decision schema. Refusals and truncated replies fall back to demo mode with the amber notice, instead of failing silently on a parse error.
   Why now: The only planned behavior not yet built, and the learner's Claude API learning focus.
   PRD ref: `prd.md > Extraction`, `prd.md > States and Boundaries` (Claude error / timeout)
@@ -27,7 +27,7 @@ Build mode: fast
   Build: Replace the prompt-only JSON instruction + `parseJsonObject` brace-scraping with `output_config.format` json_schema (`DECISION_SCHEMA`, `additionalProperties: false`, all keys required); `JSON.parse` the text block directly; throw on `stop_reason` `refusal` / `max_tokens`; `max_tokens: 16000`. Update tests.
   Verify (mechanical): `npm test` passes, with tests asserting the request body carries the schema, a structured response is parsed into a `source: 'claude'` record, and refusal / max_tokens responses fall back to demo mode with a warning. If a key is available: one live `POST /api/extract` of the Webhook retries example returns `source: 'claude'`.
   Learner check: With `ANTHROPIC_API_KEY` set, run `npm start`, check the badge says Claude, extract the Webhook retries example, and check that the fields are filled in sensibly and there's no amber fallback notice.
-  Commit: `Use structured outputs for Claude extraction`
+  Commit: `Use structured outputs for Claude extraction` (677e77b). Mocked tests and the smoke test pass. The live Claude check is pending: no `ANTHROPIC_API_KEY` in the build shell, so the learner tries it at the hands-on session.
 
 ## Hands-on Checkpoints
 
