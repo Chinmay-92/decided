@@ -1,33 +1,44 @@
 // Claude mode: asks the Anthropic Messages API to extract the decision record.
 // Used only when ANTHROPIC_API_KEY is set; any failure falls back to demo mode.
+// Structured outputs (output_config.format) guarantee the reply matches DECISION_SCHEMA.
 import { normaliseRecord } from './extract.js';
 
 export const DEFAULT_MODEL = 'claude-sonnet-5-5';
 
+const strings = (description) => ({ type: 'array', items: { type: 'string' }, description });
+
+export const DECISION_SCHEMA = {
+  type: 'object',
+  properties: {
+    title: { type: 'string', description: 'Imperative, at most 10 words, e.g. "Use Postgres for the events store"' },
+    status: { type: 'string', enum: ['decided', 'open'] },
+    decision: { type: 'string', description: 'What was decided, one or two sentences; empty if open' },
+    decidedBy: { type: 'string', description: 'Person who made or confirmed the call; empty if unclear' },
+    participants: strings('Everyone who spoke in the thread'),
+    context: { type: 'string', description: 'The problem being discussed, 1-2 sentences' },
+    options: strings('Alternatives that were considered, short'),
+    rationale: strings('Reasons given for the choice, short'),
+    actions: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: { owner: { type: 'string' }, task: { type: 'string' } },
+        required: ['owner', 'task'],
+        additionalProperties: false,
+      },
+    },
+    openQuestions: strings('Things still unresolved'),
+    tags: strings('2-4 lowercase topic keywords'),
+  },
+  required: ['title', 'status', 'decision', 'decidedBy', 'participants', 'context', 'options', 'rationale', 'actions', 'openQuestions', 'tags'],
+  additionalProperties: false,
+};
+
 const SYSTEM = `You turn messy team chat threads into concise decision records.
-Return ONLY a JSON object, no prose, with exactly these keys:
-{"title": string (imperative, <= 10 words, e.g. "Use Postgres for the events store"),
- "status": "decided" | "open",
- "decision": string (what was decided, one or two sentences; empty if open),
- "decidedBy": string (person who made or confirmed the call; empty if unclear),
- "participants": string[],
- "context": string (the problem being discussed, 1-2 sentences),
- "options": string[] (alternatives that were considered, short),
- "rationale": string[] (reasons given for the choice, short),
- "actions": {"owner": string, "task": string}[],
- "openQuestions": string[] (things still unresolved),
- "tags": string[] (2-4 lowercase topic keywords)}
 Only use information present in the thread. Never invent names, numbers or reasons.`;
 
 export function claudeAvailable(env = process.env) {
   return Boolean(env.ANTHROPIC_API_KEY);
-}
-
-export function parseJsonObject(text) {
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  if (start < 0 || end <= start) throw new Error('Claude did not return JSON');
-  return JSON.parse(text.slice(start, end + 1));
 }
 
 export async function extractWithClaude(thread, { env = process.env, fetchImpl = fetch, today = new Date() } = {}) {
@@ -40,8 +51,10 @@ export async function extractWithClaude(thread, { env = process.env, fetchImpl =
     },
     body: JSON.stringify({
       model: env.ANTHROPIC_MODEL || DEFAULT_MODEL,
-      max_tokens: 1500,
+      // Adaptive thinking shares this limit with the JSON, so leave plenty of room.
+      max_tokens: 16000,
       system: SYSTEM,
+      output_config: { format: { type: 'json_schema', schema: DECISION_SCHEMA } },
       messages: [{ role: 'user', content: `Thread:\n"""\n${thread}\n"""` }],
     }),
     signal: AbortSignal.timeout(45000),
@@ -51,7 +64,11 @@ export async function extractWithClaude(thread, { env = process.env, fetchImpl =
     throw new Error(`Anthropic API error ${res.status}: ${body.slice(0, 200)}`);
   }
   const data = await res.json();
+  // A refused or truncated reply is not guaranteed to match the schema.
+  if (data.stop_reason === 'refusal' || data.stop_reason === 'max_tokens') {
+    throw new Error(`Claude stopped early (stop_reason: ${data.stop_reason})`);
+  }
   const text = (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
-  const parsed = parseJsonObject(text);
+  const parsed = JSON.parse(text);
   return normaliseRecord({ ...parsed, date: today.toISOString().slice(0, 10), source: 'claude' });
 }

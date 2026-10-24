@@ -72,7 +72,7 @@ test('claude mode: uses the API response, and falls back to demo mode on failure
   const okFetch = async (url, init) => {
     calls.push({ url, init });
     const json = { title: 'Use SQS for webhook retries', status: 'decided', decision: 'SQS + DLQ.', decidedBy: 'Priya', participants: ['Priya'], context: 'c', options: ['Kafka'], rationale: ['cheaper'], actions: [{ owner: 'Aisha', task: 'Terraform' }], openQuestions: [], tags: ['sqs'] };
-    return new Response(JSON.stringify({ content: [{ type: 'text', text: JSON.stringify(json) }] }), { status: 200 });
+    return new Response(JSON.stringify({ stop_reason: 'end_turn', content: [{ type: 'thinking', thinking: '' }, { type: 'text', text: JSON.stringify(json) }] }), { status: 200 });
   };
   const env = { ANTHROPIC_API_KEY: 'test-key-not-real' };
   const a = await start({ env, dataFile: join(dir, 'b.json'), fetchImpl: okFetch });
@@ -84,6 +84,9 @@ test('claude mode: uses the API response, and falls back to demo mode on failure
     assert.equal(res.body.warning, null);
     const sent = JSON.parse(calls[0].init.body);
     assert.equal(sent.model, 'claude-sonnet-5-5');
+    assert.equal(sent.output_config.format.type, 'json_schema');
+    assert.equal(sent.output_config.format.schema.additionalProperties, false);
+    assert.equal(sent.max_tokens, 16000);
     assert.equal(calls[0].init.headers['x-api-key'], 'test-key-not-real');
   } finally {
     a.server.close();
@@ -98,5 +101,17 @@ test('claude mode: uses the API response, and falls back to demo mode on failure
     assert.match(res.body.warning, /demo mode/);
   } finally {
     b.server.close();
+  }
+
+  for (const stop_reason of ['refusal', 'max_tokens']) {
+    const stopFetch = async () => new Response(JSON.stringify({ stop_reason, content: [{ type: 'text', text: '{"title":' }] }), { status: 200 });
+    const c = await start({ env, dataFile: join(dir, `d-${stop_reason}.json`), fetchImpl: stopFetch });
+    try {
+      const res = await c.call('/api/extract', { method: 'POST', body: { thread: examples[0].thread } });
+      assert.equal(res.body.record.source, 'demo');
+      assert.match(res.body.warning, new RegExp(stop_reason));
+    } finally {
+      c.server.close();
+    }
   }
 });

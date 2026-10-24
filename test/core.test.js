@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { extractDecision, parseMessages, normaliseRecord } from '../src/extract.js';
 import { findRelated, similarity } from '../src/similar.js';
 import { toAdrMarkdown, adrFilename } from '../src/adr.js';
-import { parseJsonObject } from '../src/claude.js';
+import { DECISION_SCHEMA } from '../src/claude.js';
 
 const examples = JSON.parse(readFileSync(new URL('../samples/examples.json', import.meta.url)));
 const seed = JSON.parse(readFileSync(new URL('../samples/seed-decisions.json', import.meta.url)));
@@ -81,7 +81,10 @@ test('renders ADR markdown and a safe filename', () => {
   assert.match(adrFilename(r), /^2026-10-23-use-sqs-plus-a-dlq[a-z0-9-]*\.md$/);
 });
 
-test('parses JSON wrapped in prose or code fences from Claude', () => {
-  assert.deepEqual(parseJsonObject('Here you go:\n```json\n{"title":"X"}\n```'), { title: 'X' });
-  assert.throws(() => parseJsonObject('no json here'));
+test('decision schema is strict enough for structured outputs', () => {
+  const objects = [DECISION_SCHEMA, DECISION_SCHEMA.properties.actions.items];
+  for (const o of objects) {
+    assert.equal(o.additionalProperties, false);
+    assert.deepEqual([...o.required].sort(), Object.keys(o.properties).sort());
+  }
 });
