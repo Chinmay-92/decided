@@ -163,10 +163,7 @@ async function record(beats, total) {
     'export.2': async () => {
       await unhl(); await scrollToY(0);
       await click('#tab-log');
-      // App bug: `#view-capture { display: grid }` in styles.css overrides the `hidden` attribute, so the
-      // Capture view stays visible and the log renders below it. Scroll down to it rather than patching the app.
-      await sleep(500);
-      await scrollIntoView('#view-log', 'start');
+      await sleep(900);
       await click('#search');
       await page.keyboard.type('sqs', { delay: 220 });
       await sleep(600);
