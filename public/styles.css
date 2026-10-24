@@ -128,3 +128,8 @@ dialog::backdrop { background: rgba(10, 14, 20, 0.45); }
 #detail-md { white-space: pre-wrap; font: 13px/1.55 var(--mono); max-height: 60vh; overflow: auto; margin: 0; }
 .flash { animation: flash 1.2s ease-out; }
 @keyframes flash { from { box-shadow: 0 0 0 3px var(--accent); } to { box-shadow: 0 0 0 0 transparent; } }
+
+/* Views are toggled with the hidden attribute; keep it winning over display: grid. */
+[hidden] {
+  display: none !important;
+}
