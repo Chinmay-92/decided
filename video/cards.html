@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Decided demo cards</title>
+<style>
+  :root {
+    --bg: #f6f3ee; --panel: #fff; --ink: #1d2430; --muted: #5d6675; --line: #e2ddd3;
+    --accent: #1f3a5f; --red: #d9534f; --redbg: #fdecea;
+    --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; overflow: hidden; }
+  .scene { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; padding: 60px; }
+  .scene.on { display: flex; animation: fade .5s ease-out; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .rise { opacity: 0; animation: rise .6s ease-out forwards; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+  /* title cards */
+  .big { font-size: 54px; font-weight: 750; letter-spacing: -0.02em; text-align: center; max-width: 1000px; line-height: 1.15; }
+  .sub { font-size: 26px; color: var(--muted); margin-top: 22px; text-align: center; max-width: 900px; }
+  .q { font-family: var(--mono); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 22px; font-size: 26px; margin-top: 30px; }
+  .brand { display: flex; align-items: center; gap: 26px; }
+  .mark { width: 110px; height: 110px; border-radius: 22px; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 64px; font-weight: 700; }
+  .brand h1 { font-size: 92px; margin: 0; letter-spacing: -0.03em; }
+  .tagline { font-size: 26px; color: var(--muted); margin-top: 26px; }
+
+  /* mock chat */
+  .chat { width: 900px; height: 640px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(20,30,50,.12); }
+  .chat-head { padding: 16px 22px; border-bottom: 1px solid var(--line); font-weight: 700; font-size: 19px; display: flex; justify-content: space-between; }
+  .chat-head span { color: var(--muted); font-weight: 400; font-size: 15px; }
+  .msgs { flex: 1; overflow: hidden; padding: 6px 22px; position: relative; }
+  .msgs-inner { transition: transform 9s linear; }
+  .msg { display: flex; gap: 14px; padding: 9px 0; }
+  .av { width: 38px; height: 38px; border-radius: 8px; flex: none; display: grid; place-items: center; color: #fff; font-weight: 700; }
+  .who { font-weight: 700; } .who time { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .reac { display: inline-block; font-size: 13px; border: 1px solid var(--line); border-radius: 12px; padding: 0 8px; margin-top: 4px; color: var(--muted); }
+  .divider { text-align: center; color: var(--muted); font-size: 13px; margin: 10px 0; border-top: 1px solid var(--line); line-height: 0; padding-top: 0; }
+  .divider b { background: var(--panel); padding: 0 10px; font-weight: 600; }
+  .lost { position: absolute; right: 30px; bottom: 30px; background: var(--redbg); border: 1px solid var(--red); color: #8a2420; border-radius: 10px; padding: 10px 16px; font-weight: 650; opacity: 0; transition: opacity .5s; }
+
+  /* compare */
+  .cmp { display: flex; gap: 40px; }
+  .box { width: 420px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 34px; text-align: center; }
+  .box .n { font-size: 84px; font-weight: 800; letter-spacing: -0.03em; }
+  .box .l { color: var(--muted); font-size: 21px; }
+  .box.bad .n { color: var(--red); } .box.good .n { color: var(--accent); }
+
+  /* terminal */
+  .term { width: 1000px; background: #161b22; color: #d6dde6; border-radius: 12px; font: 22px/1.6 var(--mono); padding: 0 0 26px; box-shadow: 0 20px 50px rgba(20,30,50,.25); overflow: hidden; }
+  .term .bar { background: #262d36; padding: 10px 14px; display: flex; gap: 8px; margin-bottom: 20px; }
+  .term .bar i { width: 13px; height: 13px; border-radius: 50%; background: #4a5462; display: block; }
+  .term .line { padding: 0 28px; white-space: pre; min-height: 1.6em; }
+  .term .p { color: #7ee2a8; } .term .dim { color: #8b96a5; } .term .y { color: #f1c86b; }
+  .caret { display: inline-block; width: 12px; height: 24px; background: #d6dde6; vertical-align: -4px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .term-note { margin-top: 26px; font-size: 22px; color: var(--muted); }
+
+  /* repo */
+  .repo { display: flex; gap: 34px; align-items: stretch; }
+  .tree { width: 430px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px 26px; font: 18px/1.62 var(--mono); }
+  .tree .h { font-weight: 700; font-family: -apple-system, sans-serif; margin-bottom: 8px; font-size: 18px; }
+  .tree .d { color: var(--muted); }
+  .tree .hl { background: #fff1c9; border-radius: 4px; padding: 0 4px; margin-left: -4px; transition: background .4s; }
+  .tree .cc { background: #e3ecf8; }
+  .doc { width: 560px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 26px 30px; }
+  .doc .path { font: 14px var(--mono); color: var(--muted); }
+  .doc h2 { margin: 6px 0 14px; font-size: 28px; }
+  .doc h3 { margin: 18px 0 6px; font-size: 19px; }
+  .doc p { margin: 0; color: #333b48; font-size: 17px; }
+  .flow { margin-top: 18px; display: flex; gap: 8px; align-items: center; font: 15px var(--mono); flex-wrap: wrap; }
+  .flow span { border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; background: var(--bg); }
+  .built { margin-top: 30px; font-size: 24px; color: var(--muted); }
+  .built b { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<section class="scene" id="hook1">
+  <div class="big rise">Has your team ever had the same argument twice?</div>
+</section>
+
+<section class="scene" id="hook2">
+  <div class="sub rise" style="font-size:30px;color:var(--ink)">Six months after choosing SQS&hellip;</div>
+  <div class="q rise" style="animation-delay:.9s">&ldquo;why not Kafka?&rdquo;</div>
+  <div class="sub rise" style="animation-delay:2.2s">&hellip;and nobody can find the thread.</div>
+</section>
+
+<section class="scene" id="hook3">
+  <div class="brand rise"><div class="mark">&#10003;</div><h1>Decided</h1></div>
+  <div class="tagline rise" style="animation-delay:.6s">Turn a messy thread into a decision record &mdash; and catch the debates you&rsquo;ve already had.</div>
+</section>
+
+<section class="scene" id="chat">
+  <div class="chat rise">
+    <div class="chat-head"># platform-eng <span>42 members &middot; mock thread</span></div>
+    <div class="msgs"><div class="msgs-inner" id="msgs"></div><div class="lost" id="lost">Decision buried at message 37 of 112</div></div>
+  </div>
+</section>
+
+<section class="scene" id="compare">
+  <div class="cmp">
+    <div class="box bad rise"><div class="n">20 min</div><div class="l">to write an ADR by hand<br>(so nobody does)</div></div>
+    <div class="box good rise" style="animation-delay:1.2s"><div class="n">~20 s</div><div class="l">with Decided:<br>paste, extract, save</div></div>
+  </div>
+</section>
+
+<section class="scene" id="term-start">
+  <div class="term rise">
+    <div class="bar"><i></i><i></i><i></i></div>
+    <div class="line"><span class="p">~/decided $</span> <span id="ts-cmd"></span><span class="caret" id="ts-caret"></span></div>
+    <div class="line dim" id="ts-1"></div>
+    <div class="line dim" id="ts-2"></div>
+    <div class="line" id="ts-3"></div>
+    <div class="line" id="ts-4"></div>
+  </div>
+  <div class="term-note rise" style="animation-delay:.4s">Node built-ins only &middot; no <code>npm install</code> &middot; no build step</div>
+</section>
+
+<section class="scene" id="term-key">
+  <div class="term rise">
+    <div class="bar"><i></i><i></i><i></i></div>
+    <div class="line"><span class="p">~/decided $</span> <span id="tk-cmd"></span></div>
+    <div class="line"><span class="p">~/decided $</span> <span id="tk-cmd2"></span><span class="caret"></span></div>
+    <div class="line" id="tk-out"></div>
+  </div>
+  <div class="term-note rise" style="animation-delay:.4s">Badge switches to <b>Claude &middot; claude-sonnet-5-5</b>. Any Claude failure falls back to demo mode.</div>
+</section>
+
+<section class="scene" id="repo">
+  <div class="repo">
+    <div class="tree rise">
+      <div class="h">decided/</div>
+      <div><span class="d">├─</span> <span class="hl cc" id="t-claude">.claude/skills/</span></div>
+      <div><span class="d">├─</span> <span class="hl cc">CLAUDE.md</span></div>
+      <div><span class="d">├─</span> devpost/</div>
+      <div><span class="d">│  ├─</span> <span class="hl" id="t-scope">scope.md</span></div>
+      <div><span class="d">│  ├─</span> <span class="hl" id="t-prd">prd.md</span></div>
+      <div><span class="d">│  ├─</span> <span class="hl" id="t-spec">spec.md</span></div>
+      <div><span class="d">│  └─</span> checklist.md</div>
+      <div><span class="d">├─</span> public/ <span class="d">(index.html, app.js)</span></div>
+      <div><span class="d">├─</span> src/ <span class="d">(extract, similar…)</span></div>
+      <div><span class="d">├─</span> test/</div>
+      <div><span class="d">├─</span> server.js</div>
+      <div><span class="d">└─</span> package.json <span class="d">(0 deps)</span></div>
+    </div>
+    <div class="doc rise" style="animation-delay:.5s">
+      <div class="path">devpost/scope.md &middot; status: approved</div>
+      <h2>Decided</h2>
+      <h3>The Unique Kernel</h3>
+      <p>Most &ldquo;AI meeting summary&rdquo; tools stop at summarising. Decided keeps a <b>decision log</b> and, every time you capture a new thread, checks it against past decisions: <i>&ldquo;&#9888; You may have decided this already.&rdquo;</i></p>
+      <h3>Who It&rsquo;s For</h3>
+      <p>A developer or tech lead on a small product team who makes architecture calls in chat threads.</p>
+      <div class="flow"><span>Devpost Learn Skill Pack</span>&rarr;<span>scope.md</span>&rarr;<span>prd.md</span>&rarr;<span>spec.md</span>&rarr;<span>Claude Code</span></div>
+    </div>
+  </div>
+  <div class="built rise" style="animation-delay:1s" id="built">Planned with the <b>Devpost Learn Skill Pack</b> &middot; built with <b>Claude Code</b></div>
+</section>
+
+<section class="scene" id="end">
+  <div class="brand rise"><div class="mark">&#10003;</div><h1>Decided</h1></div>
+  <div class="tagline rise" style="animation-delay:.6s;font-size:34px;color:var(--ink);font-weight:650">Write decisions down once.</div>
+  <div class="sub rise" style="animation-delay:1.2s;font-size:22px"><code>npm start</code> &middot; works offline in demo mode &middot; Claude with an API key</div>
+</section>
+
+<script>
+  const people = { Priya: '#7a4fb5', Tom: '#2f7d6b', Aisha: '#c0622f', Ben: '#3a6ea5', Mei: '#a5466d', Sam: '#6b7a2f' };
+  const msgs = [
+    ['Ben', '10:02', 'anyone else seeing webhook timeouts again?'],
+    ['Mei', '10:03', 'partner API flaking, same as last week', '👀 3'],
+    ['Sam', '10:05', 'unrelated but who broke the staging deploy 😅'],
+    ['Priya', '10:07', 'Webhook deliveries are failing silently when the partner API is down. We need retries with backoff.'],
+    ['Tom', '10:09', 'What about Kafka? We could replay the topic when the partner comes back.'],
+    ['Ben', '10:10', 'lunch at 12?', '🍕 4'],
+    ['Aisha', '10:12', 'Kafka feels heavy for this. Alternatively we could use SQS with a dead-letter queue.'],
+    ['Sam', '10:13', 'didn\'t we talk about kafka in june?? or was that a different thread'],
+    ['Tom', '10:15', 'Fair, SQS is cheaper and the team already knows it.'],
+    ['Mei', '10:16', 'can someone link the incident doc'],
+    ['Priya', '10:18', 'Agreed. Let\'s go with SQS plus a DLQ for webhook retries.', '✅ 5'],
+    ['Ben', '10:19', 'staging is green again fwiw'],
+    ['Aisha', '10:21', 'I\'ll write the Terraform for the queue and DLQ this sprint.'],
+    ['Sam', '10:24', 'gif reply', '😂 2'],
+    ['Tom', '10:25', 'I\'ll add an alert on DLQ depth > 0.'],
+    ['Priya', '10:27', 'Do we need to tell partners about the new retry window?'],
+    ['Mei', '10:40', 'bumping this — did we decide anything?'],
+  ];
+  const box = document.getElementById('msgs');
+  msgs.forEach(([who, t, text, reac], i) => {
+    if (i === 9) { const d = document.createElement('div'); d.className = 'divider'; d.innerHTML = '<b>12 new messages</b>'; box.append(d); }
+    const m = document.createElement('div'); m.className = 'msg';
+    const av = document.createElement('div'); av.className = 'av'; av.style.background = people[who]; av.textContent = who[0];
+    const body = document.createElement('div');
+    const w = document.createElement('div'); w.className = 'who'; w.textContent = who;
+    const tm = document.createElement('time'); tm.textContent = t; w.append(tm);
+    const tx = document.createElement('div'); tx.textContent = text;
+    body.append(w, tx);
+    if (reac) { const r = document.createElement('span'); r.className = 'reac'; r.textContent = reac; body.append(r); }
+    m.append(av, body); box.append(m);
+  });
+
+  function type(id, text, cps = 18) {
+    return new Promise((res) => { const el = document.getElementById(id); let i = 0;
+      const tick = () => { el.textContent = text.slice(0, ++i); if (i < text.length) setTimeout(tick, 1000 / cps); else res(); }; tick(); });
+  }
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  window.show = async (name) => {
+    document.querySelectorAll('.scene').forEach((s) => s.classList.toggle('on', s.id === name));
+    if (name === 'chat') {
+      await wait(1200);
+      document.querySelector('.msgs-inner').style.transform = 'translateY(-330px)';
+      await wait(5500); document.getElementById('lost').style.opacity = 1;
+    }
+    if (name === 'term-start') {
+      await wait(500); await type('ts-cmd', 'npm start', 10);
+      document.getElementById('ts-caret').remove(); await wait(400);
+      document.getElementById('ts-1').textContent = '> decided@0.1.0 start';
+      document.getElementById('ts-2').textContent = '> node server.js';
+      await wait(500);
+      document.getElementById('ts-4').innerHTML = 'Decided is running at <span class="y">http://localhost:3000</span> — demo mode (no ANTHROPIC_API_KEY set)';
+      document.getElementById('ts-4').style.whiteSpace = 'normal';
+    }
+    if (name === 'term-key') {
+      await wait(400); await type('tk-cmd', 'export ANTHROPIC_API_KEY=sk-ant-…', 40);
+      await wait(300); await type('tk-cmd2', 'npm start', 10);
+      await wait(400);
+      document.getElementById('tk-out').innerHTML = 'Decided is running at <span class="y">http://localhost:3000</span> — Claude mode (claude-sonnet-5-5)';
+      document.getElementById('tk-out').style.whiteSpace = 'normal';
+    }
+  };
+  const first = new URLSearchParams(location.search).get('scene');
+  if (first) show(first);
+</script>
+</body>
+</html>

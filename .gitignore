@@ -8,3 +8,13 @@ data/
 
 # Personal learning context (Devpost Learn)
 /devpost/learner-profile.md
+
+# Demo video outputs (scripts and narration are committed)
+video/*.mp4
+video/*.webm
+video/*.aiff
+video/*.wav
+video/frames/
+video/*.png
+video/clips/
+video/schedule.json
